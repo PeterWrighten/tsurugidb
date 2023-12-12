@@ -1,0 +1,72 @@
+<configuration>
+  <appender name="DETAIL"
+    class="ch.qos.logback.core.FileAppender">
+    <file>${log.detail}</file>
+    <append>true</append>
+    <encoder>
+      <pattern>
+        %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+     </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="DETAIL-ONLINE"
+    class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${log.detail.online}</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>${log.detail.online}_%i.gz</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>20</maxIndex>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>100MB</maxFileSize>
+    </triggeringPolicy>
+    <append>true</append>
+    <encoder>
+      <pattern>
+        %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+     </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="SUMMARY"
+    class="ch.qos.logback.core.FileAppender">
+    <file>${log.summary}</file>
+    <append>true</append>
+    <encoder>
+      <pattern>
+        %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+     </pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+    <level>INFO</level>
+    </filter>
+  </appender>
+
+  <appender name="STDOUT"
+    class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+     </pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+    <level>INFO</level>
+    </filter>
+  </appender>
+
+  <logger name="com.tsurugidb.benchmark.phonebill.online" level="info">
+    <appender-ref ref="SUMMARY" />
+    <appender-ref ref="STDOUT" />
+  </logger>
+
+  <logger name="com.tsurugidb.benchmark.phonebill.online" level="debug" additivity="false">
+    <appender-ref ref="DETAIL-ONLINE" />
+  </logger>
+
+  <root level="DETAIL">
+    <appender-ref ref="SUMMARY" />
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="DETAIL" />
+  </root>
+</configuration>

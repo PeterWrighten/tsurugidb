@@ -1,0 +1,13 @@
+.factorypath
+.gradle/
+log.dir_IS_UNDEFINED/
+.apt_generated/
+.apt_generated_tests/
+.classpath
+.project
+.settings/
+/bin/
+build/
+logs/
+tmp/
+

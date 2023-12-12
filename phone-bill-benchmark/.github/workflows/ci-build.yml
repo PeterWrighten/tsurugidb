@@ -1,0 +1,70 @@
+name: phone-bill-benchmark-CI
+
+on:
+  push:
+    paths:
+    - 'src/**'
+    - '.github/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  Build:
+    runs-on: [self-hosted, docker]
+    permissions:
+      checks: write
+    timeout-minutes: 30
+    container:
+      image:  ghcr.io/project-tsurugi/tsurugi-ci:latest
+      volumes:
+        - ${{ vars.gradle_cache_dir }}:/root/.gradle
+    defaults:
+      run:
+        shell: bash
+        working-directory: src
+    env:
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: phonebill
+          POSTGRES_PASSWORD: phonebill
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      tsurugi:
+        image: ghcr.io/project-tsurugi/tsurugidb:snapshot
+
+    steps:
+      - name: Setup_Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Assemble
+        run: |
+          ./gradlew -i showTsubakuroManifest showIceaxeManifest clean assemble
+
+      - name: Test
+        run: |
+          ./gradlew -i test -Purl.replace="jdbc:postgresql://127.0.0.1/phonebill|jdbc:postgresql://postgres/phonebill,tcp://localhost:12345|tcp://tsurugi:12345"
+
+      - name: Static_Analysis
+        run: |
+          ./gradlew -i spotbugsMain -Pci
+
+      - name: Verify
+        uses: project-tsurugi/tsurugi-annotations-action@v1
+        if: always()
+        with:
+          junit_input: 'src/build/test-results/**/TEST-*.xml'
+          junit_test_src_dir: 'src/src/test/java'
+          spotbugs_input: 'src/build/reports/spotbugs/main/*.xml'

@@ -1,0 +1,14 @@
+[datastore]
+    log_location=/* Replace with appropriate path. */
+
+[sql]
+    thread_pool_size=$TSURUGI_THREAD_SIZE
+
+[stream_endpoint]
+    port=12345
+    threads=140
+
+[ipc_endpoint]
+    database_name=phone-bill
+    threads=140
+

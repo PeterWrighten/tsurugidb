@@ -1,0 +1,17 @@
+package com.tsurugidb.benchmark.phonebill.db;
+
+public enum TxLabel {
+    BATCH_MAIN,
+    ONLINE_MASTER_DELETE,
+    ONLINE_MASTER_INSERT,
+    ONLINE_MASTER_UPDATE,
+    ONLINE_HISTORY_INSERT,
+    ONLINE_HISTORY_UPDATE,
+    BATCH_INITIALIZE,
+    INITIALIZE,
+    TEST_DATA_GENERATOR,
+    CHECK_RESULT,
+    DDL,
+    TEST,
+    DEFAULT,
+}

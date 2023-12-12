@@ -1,0 +1,167 @@
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'com.diffplug.eclipse.apt' version '3.24.0'
+    id 'com.github.spotbugs' version '4.7.1'
+}
+
+group "com.tsurugidb.benchmark.phonebill"
+version "1.2.0-SNAPSHOT"
+
+if (hasProperty('mavenLocal')) {
+    repositories {
+        mavenLocal()
+    }
+} else {
+    repositories {
+        maven {
+            url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+            content {
+                includeGroupByRegex 'com\\.tsurugidb.*'
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+
+java {
+    mainClassName = 'com.tsurugidb.benchmark.phonebill.app.Main'
+}
+distTar {
+    archiveFileName = "phone-bill.tar.gz"
+    archiveExtension = 'tar.gz'
+    compression = Compression.GZIP
+}
+distZip {
+    archiveFileName = "phone-bill.zip"
+}
+jar {
+    archiveFileName = "phone-bill.jar"
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 8, 'hours'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+
+
+test {
+    useJUnitPlatform() {
+        if (! project.hasProperty("test.all")) {
+            excludeTags 'oracle'
+            excludeTags 'copy-command'
+        }
+    }
+    testLogging {
+        showStandardStreams true
+        events 'started', 'skipped', 'passed', 'failed'
+        exceptionFormat 'full'
+    }
+    if (project.hasProperty("phone-bill.url")) {
+        systemProperty "phone-bill.url", project.getProperty("phone-bill.url")
+    }
+    if (project.hasProperty("url.replace")) {
+        systemProperty "url.replace", project.getProperty("url.replace")
+    }
+    if (project.hasProperty("com.tsurugidb.tsubakuro.jniverify")) {
+        systemProperty "com.tsurugidb.tsubakuro.jniverify",project.getProperty("com.tsurugidb.tsubakuro.jniverify")
+    }
+
+}
+
+
+dependencies {
+  implementation 'com.tsurugidb.iceaxe:iceaxe-core:1.2.0-SNAPSHOT'
+
+  // https://mvnrepository.com/artifact/org.postgresql/postgresql
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
+  // https://mvnrepository.com/artifact/com.oracle.ojdbc/ojdbc8
+  runtimeOnly group: 'com.oracle.database.jdbc', name: 'ojdbc8', version: '21.1.0.0'
+  // https://mvnrepository.com/artifact/com.oracle.ojdbc/orai18n
+  runtimeOnly group: 'com.oracle.database.nls', name: 'orai18n', version: '21.1.0.0'
+  implementation group: 'com.oracle.database.jdbc', name: 'ucp', version: '21.1.0.0'
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.0.0") // for IDE
+  implementation "commons-cli:commons-cli:1.4"
+  implementation "ch.qos.logback:logback-classic:1.2.3"
+  implementation "org.apache.commons:commons-math3:3.6.1"
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+  compileOnly"com.github.spotbugs:spotbugs-annotations:4.2.3"
+  testCompileOnly"com.github.spotbugs:spotbugs-annotations:4.2.3"
+}
+
+
+configurations.implementation {
+    exclude group: 'org.slf4j', module: 'slf4j-simple'
+}
+
+startScripts {
+    applicationName = 'run'
+    applicationDefaultJvmArgs = ['-Dcom.tsurugidb.tsubakuro.jniverify=false']
+}
+
+tasks.withType(JavaCompile) { task ->
+    task.options.encoding = 'UTF-8'
+}
+
+
+spotbugsMain {
+    ignoreFailures = true
+    reports {
+        html {
+            enabled = !project.hasProperty("ci")
+            destination = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+        xml {
+            enabled = project.hasProperty("ci")
+            destination = file("$buildDir/reports/spotbugs/main/spotbugs.xml")
+        }
+    }
+}
+
+eclipse {
+    classpath {
+        file {
+            whenMerged { classpath ->
+                classpath.entries.removeAll { it.path == '.apt_generated' }
+            }
+            withXml { provider ->
+                def node = provider.asNode()
+                // specify output path for .apt_generated
+                node.appendNode( 'classpathentry', [ kind: 'src', output: 'bin/main', path: '.apt_generated'])
+            }
+        }
+    }
+}
+
+task showTsubakuroManifest {
+    doLast {
+        def tsubakuroJar = configurations["compileClasspath"].filter {
+            it.name.startsWith("tsubakuro-session")
+        }
+        def version = resources.text.fromArchiveEntry(tsubakuroJar, "META-INF/MANIFEST.MF")
+        print(version.asString())
+    }
+}
+
+task showIceaxeManifest {
+    doLast {
+        def iceaxeJar = configurations["compileClasspath"].filter {
+            it.name.startsWith("iceaxe-core")
+        }
+        def version = resources.text.fromArchiveEntry(iceaxeJar, "META-INF/MANIFEST.MF")
+        print(version.asString())
+    }
+}
