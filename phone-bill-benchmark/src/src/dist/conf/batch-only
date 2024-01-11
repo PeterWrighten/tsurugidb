@@ -11,7 +11,7 @@ max.date=2021-03-01
 
 # 通話履歴生成に関するパラメータ
 number.of.history.records=30000
-recipient.phone.number.distribution=UNIFORM
+recipient.phone.number.distribution=LOGNORMAL
 recipient.phone.number.scale=3.0
 recipient.phone.number.shape=18.0
 caller.phone.number.distribution=UNIFORM
@@ -52,7 +52,7 @@ shared.connection=false
 create.test.data.thread.count=64
 
 # CSVに関するパラメータ
-csv.dir=/tmp
+csv.dir=./tmp
 max.number.of.lines.history.csv=10000
 
 # Oracle固有のパラメータ
